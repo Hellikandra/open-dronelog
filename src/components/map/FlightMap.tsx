@@ -599,10 +599,10 @@ export function FlightMap({ track, homeLat, homeLon, durationSecs, telemetry, th
 
     const lerp = (arr: (number | null)[] | undefined): number | null => {
       if (!arr) return null;
-      const a = arr[lo];
-      const b = arr[hi];
-      if (a === null || a === undefined) return b;
-      if (b === null || b === undefined) return a;
+      const a = arr[lo] ?? null;
+      const b = arr[hi] ?? null;
+      if (a === null) return b;
+      if (b === null) return a;
       return a + (b - a) * frac;
     };
 
@@ -1571,11 +1571,11 @@ export function FlightMap({ track, homeLat, homeLon, durationSecs, telemetry, th
             )}
             <div className="border-t border-gray-700/60 mt-1 pt-1 flex justify-between gap-4">
               <span className="text-gray-500">{t('map.lat')}</span>
-              <span className="text-gray-400">{hoverInfo.lat.toFixed(6)}</span>
+              <span className="text-gray-400">{hoverInfo.lat?.toFixed(6) ?? '—'}</span>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-gray-500">{t('map.lng')}</span>
-              <span className="text-gray-400">{hoverInfo.lng.toFixed(6)}</span>
+              <span className="text-gray-400">{hoverInfo.lng?.toFixed(6) ?? '—'}</span>
             </div>
           </div>
         </div>
@@ -1586,7 +1586,7 @@ export function FlightMap({ track, homeLat, homeLon, durationSecs, telemetry, th
         <div className="absolute top-2 right-12 z-20 pointer-events-none">
           <div className="map-overlay bg-drone-dark/80 backdrop-blur border border-gray-700 rounded-xl px-3.5 py-3 shadow-lg text-[11px] text-gray-200 min-w-[180px]">
             {/* Flight time */}
-            {replayTelemetry.timeSecs !== null && (
+            {replayTelemetry.timeSecs != null && (
               <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700/50">
                 <svg className="w-3.5 h-3.5 text-drone-accent flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" />
@@ -1607,7 +1607,7 @@ export function FlightMap({ track, homeLat, homeLon, durationSecs, telemetry, th
             </div>
 
             {/* Battery */}
-            {replayTelemetry.battery !== null && (
+            {replayTelemetry.battery != null && (
               <div className="mt-2 pt-2 border-t border-gray-700/50 space-y-1">
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-400">{t('map.batteryLabel')}</span>
@@ -1615,39 +1615,39 @@ export function FlightMap({ track, homeLat, homeLon, durationSecs, telemetry, th
                     replayTelemetry.battery! < 40 ? 'text-amber-400' : 'text-emerald-400'
                     }`}>{Math.round(replayTelemetry.battery!)}%</span>
                 </div>
-                {replayTelemetry.batteryVoltage !== null && (
+                {replayTelemetry.batteryVoltage != null && (
                   <ReplayStatRow label={t('map.voltage')} value={`${replayTelemetry.batteryVoltage!.toFixed(1)} V`} />
                 )}
-                {replayTelemetry.batteryTemp !== null && (
+                {replayTelemetry.batteryTemp != null && (
                   <ReplayStatRow label={t('map.battTemp')} value={unitSystem === 'imperial' ? `${(replayTelemetry.batteryTemp! * 9 / 5 + 32).toFixed(0)}°F` : `${replayTelemetry.batteryTemp!.toFixed(0)}°C`} />
                 )}
               </div>
             )}
 
             {/* Satellites */}
-            {replayTelemetry.satellites !== null && (
+            {replayTelemetry.satellites != null && (
               <div className="mt-2 pt-2 border-t border-gray-700/50 space-y-1">
                 <ReplayStatRow label={t('map.satellites')} value={String(Math.round(replayTelemetry.satellites!))} />
               </div>
             )}
 
             {/* Attitude */}
-            {(replayTelemetry.pitch !== null || replayTelemetry.roll !== null || replayTelemetry.yaw !== null) && (
+            {(replayTelemetry.pitch != null || replayTelemetry.roll != null || replayTelemetry.yaw != null) && (
               <div className="mt-2 pt-2 border-t border-gray-700/50 space-y-1">
-                {replayTelemetry.pitch !== null && (
+                {replayTelemetry.pitch != null && (
                   <ReplayStatRow label={t('map.pitch')} value={`${replayTelemetry.pitch!.toFixed(1)}°`} />
                 )}
-                {replayTelemetry.roll !== null && (
+                {replayTelemetry.roll != null && (
                   <ReplayStatRow label={t('map.roll')} value={`${replayTelemetry.roll!.toFixed(1)}°`} />
                 )}
-                {replayTelemetry.yaw !== null && (
+                {replayTelemetry.yaw != null && (
                   <ReplayStatRow label={t('map.yaw')} value={`${replayTelemetry.yaw!.toFixed(1)}°`} />
                 )}
               </div>
             )}
 
             {/* Coordinates */}
-            {replayTelemetry.lat !== null && replayTelemetry.lng !== null && (
+            {replayTelemetry.lat != null && replayTelemetry.lng != null && (
               <div className="mt-2 pt-2 border-t border-gray-700/50 space-y-1">
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-500">{t('map.lat')}</span>
