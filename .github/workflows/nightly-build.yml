@@ -99,18 +99,31 @@ jobs:
           releaseName: 'Nightly Build'
           releaseBody: |
             Automated nightly pre-release built from the latest commit on `main`.
-            **This is not a stable release** — it may contain bugs or incomplete features.
+            **This is not a stable release** - it may contain bugs or incomplete features.
           prerelease: true
           includeRelease: true
           uploadPlainBinary: true
           releaseAssetNamePattern: 'open-dronelog_nightly_[platform]_[arch].[ext]'
 
-  checksums:
+  rename-and-checksums:
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - name: Checkout (for version detection)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: src-tauri/tauri.conf.json
+          sparse-checkout-cone-mode: false
+
+      - name: Detect version from tauri.conf.json
+        id: version
+        run: |
+          VERSION=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*"\([0-9][0-9.]*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
       - name: Download release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -126,7 +139,48 @@ jobs:
             --pattern '*.exe' \
             --pattern '*.msi' \
             --pattern '*.nsis.zip' \
+            --pattern '*.app.tar.gz' \
             --pattern 'open-dronelog_*'
+
+      - name: Rename versioned assets to nightly
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cd assets
+          for f in *; do
+            newname="${f//$VERSION/nightly}"
+            # RPM uses dash before version (e.g., -2.24.0-1) → -nightly-1
+            newname="${newname//-$VERSION/-nightly}"
+            if [ "$newname" != "$f" ]; then
+              echo "Renaming: $f → $newname"
+              mv "$f" "$newname"
+            fi
+          done
+          echo "Final assets:"
+          ls -la
+
+      - name: Delete old versioned assets from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release view "nightly" \
+            --repo "${{ github.repository }}" \
+            --json assets -q '.assets[].name' | while read -r name; do
+              if echo "$name" | grep -qF "$VERSION"; then
+                echo "Deleting old asset: $name"
+                gh release delete-asset "nightly" "$name" \
+                  --repo "${{ github.repository }}" --yes
+              fi
+          done
+
+      - name: Upload renamed assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "nightly" assets/* \
+            --repo "${{ github.repository }}" \
+            --clobber
 
       - name: Generate checksums
         run: |
