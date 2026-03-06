@@ -669,10 +669,13 @@
     "errorExists": "同名配置文件已存在",
     "enterPassword": "请输入\"{{name}}\"的密码",
     "passwordPlaceholder": "密码",
-    "newPasswordPlaceholder": "密码（可选）",
+    "newPasswordPlaceholder": "密码（可选，至少4个字符）",
+    "confirmPasswordPlaceholder": "确认密码",
     "masterPasswordPlaceholder": "主密码",
     "masterPasswordRequired": "需要主密码",
     "passwordRequired": "需要密码",
+    "passwordTooShort": "密码至少需要4个字符",
+    "passwordMismatch": "密码不匹配",
     "unlock": "解锁",
     "locked": "密码保护"
   }

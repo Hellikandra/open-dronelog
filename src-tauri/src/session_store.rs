@@ -19,9 +19,23 @@ use rand::Rng;
 
 // ────────────────────────────── Constants ──────────────────────────────
 
-const SESSION_TTL: Duration = Duration::from_secs(24 * 60 * 60); // 24 h
+const DEFAULT_SESSION_TTL_HOURS: u64 = 24;
 const MAX_FAILURES: u32 = 5;
 const LOCKOUT_DURATION: Duration = Duration::from_secs(60);
+
+/// Read `SESSION_TTL_HOURS` from the environment (once) and return the
+/// configured TTL.  Falls back to 24 h when the var is absent or invalid.
+fn session_ttl() -> Duration {
+    use std::sync::OnceLock;
+    static TTL: OnceLock<Duration> = OnceLock::new();
+    *TTL.get_or_init(|| {
+        let hours = std::env::var("SESSION_TTL_HOURS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(DEFAULT_SESSION_TTL_HOURS);
+        log::info!("Session TTL configured to {} hour(s)", hours);
+        Duration::from_secs(hours * 3600)
+    })
 
 // ────────────────────────────── Types ──────────────────────────────────
 
@@ -71,7 +85,7 @@ impl SessionStore {
     pub fn validate(&self, token: &str) -> Option<String> {
         let sessions = self.sessions.read().unwrap();
         sessions.get(token).and_then(|s| {
-            if s.created.elapsed() < SESSION_TTL {
+            if s.created.elapsed() < session_ttl() {
                 Some(s.profile.clone())
             } else {
                 None
@@ -95,7 +109,7 @@ impl SessionStore {
     #[allow(dead_code)]
     pub fn purge_expired(&self) {
         let mut sessions = self.sessions.write().unwrap();
-        sessions.retain(|_, s| s.created.elapsed() < SESSION_TTL);
+        sessions.retain(|_, s| s.created.elapsed() < session_ttl());
     }
 
     // ── Lockout ──

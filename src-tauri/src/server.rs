@@ -67,6 +67,7 @@ impl WebAppState {
 
     /// Convenience: get the *server-default* active profile's DB.
     /// Used only by non-request code (e.g. scheduled sync).
+    #[allow(dead_code)]
     pub fn db(&self) -> Arc<Database> {
         let profile = database::get_active_profile(&self.data_dir);
         self.db_for_profile(&profile)

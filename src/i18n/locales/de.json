@@ -669,10 +669,13 @@
     "errorExists": "Ein Profil mit diesem Namen existiert bereits",
     "enterPassword": "Passwort für \"{{name}}\" eingeben",
     "passwordPlaceholder": "Passwort",
-    "newPasswordPlaceholder": "Passwort (optional)",
+    "newPasswordPlaceholder": "Passwort (optional, min. 4 Zeichen)",
+    "confirmPasswordPlaceholder": "Passwort bestätigen",
     "masterPasswordPlaceholder": "Master-Passwort",
     "masterPasswordRequired": "Master-Passwort ist erforderlich",
     "passwordRequired": "Passwort ist erforderlich",
+    "passwordTooShort": "Passwort muss mindestens 4 Zeichen lang sein",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
     "unlock": "Entsperren",
     "locked": "Passwortgeschützt"
   }

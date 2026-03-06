@@ -669,10 +669,13 @@
     "errorExists": "この名前のプロファイルは既に存在します",
     "enterPassword": "\"{{name}}\"のパスワードを入力",
     "passwordPlaceholder": "パスワード",
-    "newPasswordPlaceholder": "パスワード（任意）",
+    "newPasswordPlaceholder": "パスワード（任意、4文字以上）",
+    "confirmPasswordPlaceholder": "パスワードを確認",
     "masterPasswordPlaceholder": "マスターパスワード",
     "masterPasswordRequired": "マスターパスワードが必要です",
     "passwordRequired": "パスワードが必要です",
+    "passwordTooShort": "パスワードは4文字以上にしてください",
+    "passwordMismatch": "パスワードが一致しません",
     "unlock": "ロック解除",
     "locked": "パスワード保護"
   }

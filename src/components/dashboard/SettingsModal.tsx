@@ -704,22 +704,17 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
               {/* Profile Password Section */}
               <div className="pt-4 border-t border-gray-700">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t('settings.profilePassword')}
-                </label>
-                <p className="text-xs text-gray-500 mb-3">
-                  {t('settings.profilePasswordDesc')}
-                </p>
-
-                {/* Current status */}
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm text-gray-400">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="text-sm font-medium text-gray-300">
+                    {t('settings.profilePassword')}
+                  </label>
+                  <span className="text-xs text-gray-500">
                     {profilePasswords[activeProfile]
                       ? t('settings.passwordEnabled')
                       : t('settings.passwordDisabled')}
                   </span>
                   {profilePasswords[activeProfile] && (
-                    <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   )}
@@ -734,50 +729,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 {profilePasswords[activeProfile] ? (
                   /* Profile has a password — change or remove */
                   <div className="space-y-2">
-                    <input
-                      type="password"
-                      placeholder={t('settings.currentPassword')}
-                      value={pwCurrent}
-                      onChange={e => setPwCurrent(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
-                    />
-                    <input
-                      type="password"
-                      placeholder={t('settings.newPasswordOpt')}
-                      value={pwNew}
-                      onChange={e => setPwNew(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
-                    />
-                    {pwNew && (
+                    <div className="flex gap-2">
                       <input
                         type="password"
-                        placeholder={t('settings.confirmPassword')}
-                        value={pwConfirm}
-                        onChange={e => setPwConfirm(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
+                        placeholder={t('settings.currentPassword')}
+                        value={pwCurrent}
+                        onChange={e => setPwCurrent(e.target.value)}
+                        className="flex-1 min-w-0 px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
                       />
-                    )}
-                    <div className="flex gap-2">
-                      {pwNew && (
-                        <button
-                          type="button"
-                          disabled={pwBusy || !pwCurrent || !pwNew || pwNew !== pwConfirm}
-                          onClick={async () => {
-                            setPwBusy(true);
-                            setPwMessage(null);
-                            try {
-                              await api.setProfilePassword(activeProfile, pwNew, pwCurrent);
-                              setPwMessage({ type: 'success', text: t('settings.passwordChanged') });
-                              setPwCurrent(''); setPwNew(''); setPwConfirm('');
-                            } catch (err) {
-                              setPwMessage({ type: 'error', text: String(err) });
-                            } finally { setPwBusy(false); }
-                          }}
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-drone-primary text-white text-xs hover:bg-drone-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {t('settings.changePassword')}
-                        </button>
-                      )}
                       <button
                         type="button"
                         disabled={pwBusy || !pwCurrent}
@@ -793,50 +752,88 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                             setPwMessage({ type: 'error', text: String(err) });
                           } finally { setPwBusy(false); }
                         }}
-                        className="flex-1 py-1.5 px-3 rounded-lg border border-red-600 text-red-400 text-xs hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="py-1.5 px-3 rounded-lg border border-red-600 text-red-400 text-xs hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                       >
                         {t('settings.removePassword')}
                       </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        placeholder={t('settings.newPasswordOpt')}
+                        value={pwNew}
+                        onChange={e => setPwNew(e.target.value)}
+                        className="flex-1 min-w-0 px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
+                      />
+                      {pwNew && (
+                        <input
+                          type="password"
+                          placeholder={t('settings.confirmPassword')}
+                          value={pwConfirm}
+                          onChange={e => setPwConfirm(e.target.value)}
+                          className="flex-1 min-w-0 px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
+                        />
+                      )}
+                      {pwNew && (
+                        <button
+                          type="button"
+                          disabled={pwBusy || !pwCurrent || !pwNew || pwNew.length < 4 || pwNew !== pwConfirm}
+                          onClick={async () => {
+                            setPwBusy(true);
+                            setPwMessage(null);
+                            try {
+                              await api.setProfilePassword(activeProfile, pwNew, pwCurrent);
+                              setPwMessage({ type: 'success', text: t('settings.passwordChanged') });
+                              setPwCurrent(''); setPwNew(''); setPwConfirm('');
+                            } catch (err) {
+                              setPwMessage({ type: 'error', text: String(err) });
+                            } finally { setPwBusy(false); }
+                          }}
+                          className="py-1.5 px-3 rounded-lg bg-drone-primary text-white text-xs hover:bg-drone-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                        >
+                          {t('settings.changePassword')}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (
                   /* Profile has no password — set one */
                   <div className="space-y-2">
-                    <input
-                      type="password"
-                      placeholder={t('settings.newPasswordLabel')}
-                      value={pwNew}
-                      onChange={e => setPwNew(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
-                    />
-                    {pwNew && (
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        placeholder={t('settings.newPasswordLabel')}
+                        value={pwNew}
+                        onChange={e => setPwNew(e.target.value)}
+                        className="flex-1 min-w-0 px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
+                      />
                       <input
                         type="password"
                         placeholder={t('settings.confirmPassword')}
                         value={pwConfirm}
                         onChange={e => setPwConfirm(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
+                        className="flex-1 min-w-0 px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-xs text-gray-200 focus:outline-none focus:ring-1 focus:ring-drone-primary"
                       />
-                    )}
-                    <button
-                      type="button"
-                      disabled={pwBusy || !pwNew || pwNew !== pwConfirm}
-                      onClick={async () => {
-                        setPwBusy(true);
-                        setPwMessage(null);
-                        try {
-                          await api.setProfilePassword(activeProfile, pwNew);
-                          setPwMessage({ type: 'success', text: t('settings.passwordSet') });
-                          setPwNew(''); setPwConfirm('');
-                          await loadProfiles();
-                        } catch (err) {
-                          setPwMessage({ type: 'error', text: String(err) });
-                        } finally { setPwBusy(false); }
-                      }}
-                      className="w-full py-1.5 px-3 rounded-lg bg-drone-primary text-white text-xs hover:bg-drone-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {t('settings.setPassword')}
-                    </button>
+                      <button
+                        type="button"
+                        disabled={pwBusy || !pwNew || pwNew.length < 4 || pwNew !== pwConfirm}
+                        onClick={async () => {
+                          setPwBusy(true);
+                          setPwMessage(null);
+                          try {
+                            await api.setProfilePassword(activeProfile, pwNew);
+                            setPwMessage({ type: 'success', text: t('settings.passwordSet') });
+                            setPwNew(''); setPwConfirm('');
+                            await loadProfiles();
+                          } catch (err) {
+                            setPwMessage({ type: 'error', text: String(err) });
+                          } finally { setPwBusy(false); }
+                        }}
+                        className="py-1.5 px-3 rounded-lg bg-drone-primary text-white text-xs hover:bg-drone-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                      >
+                        {t('settings.setPassword')}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

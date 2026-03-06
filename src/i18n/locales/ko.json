@@ -669,10 +669,13 @@
     "errorExists": "같은 이름의 프로필이 이미 존재합니다",
     "enterPassword": "\"{{name}}\"의 비밀번호를 입력하세요",
     "passwordPlaceholder": "비밀번호",
-    "newPasswordPlaceholder": "비밀번호 (선택 사항)",
+    "newPasswordPlaceholder": "비밀번호 (선택 사항, 최소 4자)",
+    "confirmPasswordPlaceholder": "비밀번호 확인",
     "masterPasswordPlaceholder": "마스터 비밀번호",
     "masterPasswordRequired": "마스터 비밀번호가 필요합니다",
     "passwordRequired": "비밀번호가 필요합니다",
+    "passwordTooShort": "비밀번호는 4자 이상이어야 합니다",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다",
     "unlock": "잠금 해제",
     "locked": "비밀번호 보호"
   }

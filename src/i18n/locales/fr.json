@@ -669,10 +669,13 @@
     "errorExists": "Un profil avec ce nom existe déjà",
     "enterPassword": "Entrez le mot de passe pour \"{{name}}\"",
     "passwordPlaceholder": "Mot de passe",
-    "newPasswordPlaceholder": "Mot de passe (facultatif)",
+    "newPasswordPlaceholder": "Mot de passe (facultatif, min. 4 caractères)",
+    "confirmPasswordPlaceholder": "Confirmer le mot de passe",
     "masterPasswordPlaceholder": "Mot de passe maître",
     "masterPasswordRequired": "Le mot de passe maître est requis",
     "passwordRequired": "Le mot de passe est requis",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 4 caractères",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
     "unlock": "Déverrouiller",
     "locked": "Protégé par mot de passe"
   }

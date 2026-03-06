@@ -669,10 +669,13 @@
     "errorExists": "Profil o tej nazwie już istnieje",
     "enterPassword": "Wprowadź hasło dla \"{{name}}\"",
     "passwordPlaceholder": "Hasło",
-    "newPasswordPlaceholder": "Hasło (opcjonalne)",
+    "newPasswordPlaceholder": "Hasło (opcjonalne, min. 4 znaki)",
+    "confirmPasswordPlaceholder": "Potwierdź hasło",
     "masterPasswordPlaceholder": "Hasło główne",
     "masterPasswordRequired": "Hasło główne jest wymagane",
     "passwordRequired": "Hasło jest wymagane",
+    "passwordTooShort": "Hasło musi mieć co najmniej 4 znaki",
+    "passwordMismatch": "Hasła nie są zgodne",
     "unlock": "Odblokuj",
     "locked": "Chronione hasłem"
   }

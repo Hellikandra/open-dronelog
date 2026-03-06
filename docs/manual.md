@@ -235,7 +235,7 @@ Any profile (including the default profile) can be protected with a password:
 
 Password details:
 - Passwords are hashed with **argon2id** (industry-standard)
-- In web/Docker mode, a successful login issues a **session token** (valid for 24 hours)
+- In web/Docker mode, a successful login issues a **session token** (valid for 24 hours by default, configurable via `SESSION_TTL_HOURS` env var)
 - **Lockout**: 5 consecutive failed password attempts lock the profile for 60 seconds
 - Protected profiles show an amber **lock icon** in the profile selector dropdown
 

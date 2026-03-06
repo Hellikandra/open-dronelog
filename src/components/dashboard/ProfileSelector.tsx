@@ -24,6 +24,7 @@ export function ProfileSelector() {
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [deletePassword, setDeletePassword] = useState('');
@@ -83,6 +84,7 @@ export function ProfileSelector() {
     setShowNewInput(false);
     setNewName('');
     setNewPassword('');
+    setNewPasswordConfirm('');
     setMasterPasswordVal('');
     setError(null);
     setConfirmingDelete(null);
@@ -107,6 +109,14 @@ export function ProfileSelector() {
     const validationError = validateName(trimmed);
     if (validationError) {
       setError(validationError);
+      return;
+    }
+    if (newPassword && newPassword.length < 4) {
+      setError(t('profile.passwordTooShort'));
+      return;
+    }
+    if (newPassword && newPassword !== newPasswordConfirm) {
+      setError(t('profile.passwordMismatch'));
       return;
     }
     if (masterRequired && !masterPasswordVal.trim()) {
@@ -381,6 +391,19 @@ export function ProfileSelector() {
                 placeholder={t('profile.newPasswordPlaceholder')}
                 className="w-full text-xs px-2 py-1.5 mt-1 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-drone-primary"
               />
+              {newPassword && (
+                <input
+                  type="password"
+                  value={newPasswordConfirm}
+                  onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreate();
+                    if (e.key === 'Escape') closeAll();
+                  }}
+                  placeholder={t('profile.confirmPasswordPlaceholder')}
+                  className="w-full text-xs px-2 py-1.5 mt-1 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-drone-primary"
+                />
+              )}
               {masterRequired && (
                 <input
                   type="password"

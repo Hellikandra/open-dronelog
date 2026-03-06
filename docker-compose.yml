@@ -21,6 +21,8 @@ services:
       # - SYNC_LOGS_PATH=/sync-logs
       # Uncomment to enable scheduled sync (cron expression, default: every 8 hours)
       # - SYNC_INTERVAL=0 0 */8 * * *
+      # Uncomment to customize session token lifetime (default: 24 hours)
+      # - SESSION_TTL_HOURS=24
     restart: unless-stopped
 
 volumes:

@@ -670,10 +670,13 @@
     "errorExists": "A profile with this name already exists",
     "enterPassword": "Enter password for \"{{name}}\"",
     "passwordPlaceholder": "Password",
-    "newPasswordPlaceholder": "Password (optional)",
+    "newPasswordPlaceholder": "Password (optional, min 4 chars)",
+    "confirmPasswordPlaceholder": "Confirm password",
     "masterPasswordPlaceholder": "Master password",
     "masterPasswordRequired": "Master password is required",
     "passwordRequired": "Password is required",
+    "passwordTooShort": "Password must be at least 4 characters",
+    "passwordMismatch": "Passwords do not match",
     "unlock": "Unlock",
     "locked": "Password protected"
   }

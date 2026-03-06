@@ -669,10 +669,13 @@
     "errorExists": "Esiste già un profilo con questo nome",
     "enterPassword": "Inserisci la password per \"{{name}}\"",
     "passwordPlaceholder": "Password",
-    "newPasswordPlaceholder": "Password (facoltativo)",
+    "newPasswordPlaceholder": "Password (facoltativo, min. 4 caratteri)",
+    "confirmPasswordPlaceholder": "Conferma password",
     "masterPasswordPlaceholder": "Password principale",
     "masterPasswordRequired": "La password principale è obbligatoria",
     "passwordRequired": "La password è obbligatoria",
+    "passwordTooShort": "La password deve contenere almeno 4 caratteri",
+    "passwordMismatch": "Le password non corrispondono",
     "unlock": "Sblocca",
     "locked": "Protetto da password"
   }

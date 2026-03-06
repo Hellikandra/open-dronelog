@@ -669,10 +669,13 @@
     "errorExists": "Er bestaat al een profiel met deze naam",
     "enterPassword": "Voer het wachtwoord in voor \"{{name}}\"",
     "passwordPlaceholder": "Wachtwoord",
-    "newPasswordPlaceholder": "Wachtwoord (optioneel)",
+    "newPasswordPlaceholder": "Wachtwoord (optioneel, min. 4 tekens)",
+    "confirmPasswordPlaceholder": "Wachtwoord bevestigen",
     "masterPasswordPlaceholder": "Hoofdwachtwoord",
     "masterPasswordRequired": "Hoofdwachtwoord is vereist",
     "passwordRequired": "Wachtwoord is vereist",
+    "passwordTooShort": "Wachtwoord moet minimaal 4 tekens bevatten",
+    "passwordMismatch": "Wachtwoorden komen niet overeen",
     "unlock": "Ontgrendelen",
     "locked": "Beveiligd met wachtwoord"
   }
