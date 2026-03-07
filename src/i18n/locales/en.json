@@ -608,6 +608,9 @@
     "clickToCycleSpeed": "Click to cycle speed"
   },
   "clusterMap": {
+    "layers": "Layers",
+    "showClusters": "Clusters",
+    "showHeatmap": "Heatmap",
     "flightLocations": "Flight Locations",
     "globalFilterActive": "— Global filter active",
     "satellite": "Satellite",

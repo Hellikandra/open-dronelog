@@ -607,6 +607,9 @@
     "clickToCycleSpeed": "Klik om snelheid te wisselen"
   },
   "clusterMap": {
+    "layers": "Lagen",
+    "showClusters": "Clusters",
+    "showHeatmap": "Hittekaart",
     "flightLocations": "Vluchtlocaties",
     "globalFilterActive": "— Globaal filter actief",
     "satellite": "Satelliet",

@@ -607,6 +607,9 @@
     "clickToCycleSpeed": "クリックで速度切替"
   },
   "clusterMap": {
+    "layers": "レイヤー",
+    "showClusters": "クラスター",
+    "showHeatmap": "ヒートマップ",
     "flightLocations": "フライト位置",
     "globalFilterActive": "— グローバルフィルター有効",
     "satellite": "衛星",

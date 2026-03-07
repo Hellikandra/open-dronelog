@@ -607,6 +607,9 @@
     "clickToCycleSpeed": "Clicca per cambiare velocità"
   },
   "clusterMap": {
+    "layers": "Livelli",
+    "showClusters": "Cluster",
+    "showHeatmap": "Mappa di calore",
     "flightLocations": "Posizioni di Volo",
     "globalFilterActive": "— Filtro globale attivo",
     "satellite": "Satellite",

@@ -87,6 +87,62 @@ const unclusteredPointLayer: maplibregl.LayerSpecification = {
   },
 };
 
+/** Heatmap layer rendering flight density */
+const heatmapLayer: maplibregl.LayerSpecification = {
+  id: 'flights-heat',
+  type: 'heatmap',
+  source: 'flights',
+  maxzoom: 14,
+  paint: {
+    // Increase weight as point count increases (using cluster point_count if it exists, otherwise 1)
+    'heatmap-weight': [
+      'interpolate',
+      ['linear'],
+      ['coalesce', ['get', 'point_count'], 1],
+      0, 0,
+      10, 1,
+      50, 2,
+    ],
+    // Increase the heatmap color weight weight by zoom level
+    // heatmap-intensity is a multiplier on top of heatmap-weight
+    'heatmap-intensity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      0, 1,
+      14, 3
+    ],
+    // Color ramp from transparent to blue to yellow to red
+    'heatmap-color': [
+      'interpolate',
+      ['linear'],
+      ['heatmap-density'],
+      0, 'rgba(49, 172, 33, 0)',
+      0.2, 'rgba(90, 206, 75, 1)',
+      0.4, 'rgba(218, 240, 209, 1)',
+      0.6, 'rgb(253,219,199)',
+      0.8, 'rgb(239,138,98)',
+      1, 'rgb(178,24,43)'
+    ],
+    // Adjust the heatmap radius by zoom level
+    'heatmap-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      0, 10,
+      14, 30
+    ],
+    // Transition from heatmap to circle layer by zoom level
+    'heatmap-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      7, 1,
+      14, 0.5
+    ],
+  }
+};
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -130,6 +186,46 @@ export function FlightClusterMap({
       window.sessionStorage.setItem('clusterMap:mapType', mapType);
     }
   }, [mapType]);
+
+  // Layers State
+  const [showClusters, setShowClusters] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.sessionStorage.getItem('clusterMap:showClusters');
+      return stored !== null ? stored === 'true' : true; // Default true
+    }
+    return true;
+  });
+
+  const [showHeatmap, setShowHeatmap] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.sessionStorage.getItem('clusterMap:showHeatmap');
+      return stored !== null ? stored === 'true' : false; // Default false
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('clusterMap:showClusters', String(showClusters));
+      window.sessionStorage.setItem('clusterMap:showHeatmap', String(showHeatmap));
+    }
+  }, [showClusters, showHeatmap]);
+
+  const handleToggleLayer = useCallback((layer: 'clusters' | 'heatmap') => {
+    if (layer === 'clusters') {
+      // If turning OFF clusters, ensure heatmap is ON
+      if (showClusters && !showHeatmap) {
+        setShowHeatmap(true);
+      }
+      setShowClusters(prev => !prev);
+    } else {
+      // If turning OFF heatmap, ensure clusters is ON
+      if (showHeatmap && !showClusters) {
+        setShowClusters(true);
+      }
+      setShowHeatmap(prev => !prev);
+    }
+  }, [showClusters, showHeatmap]);
 
   const [popupInfo, setPopupInfo] = useState<{
     longitude: number;
@@ -517,8 +613,8 @@ export function FlightClusterMap({
         >
           <NavigationControl position="top-right" />
 
-          {/* Map Style Selector */}
-          <div className="absolute top-2 left-2 z-10 w-44">
+          {/* Map Controls */}
+          <div className="absolute top-2 left-2 z-10 flex flex-col gap-2 w-44">
             <Select
               className="map-layer-select shadow-md"
               value={mapType}
@@ -528,6 +624,37 @@ export function FlightClusterMap({
                 label: t(opt.labelKey as any),
               }))}
             />
+
+            {/* Layer Toggles */}
+            <div className="bg-drone-dark/80 border border-gray-700/50 backdrop-blur-md rounded-lg p-3 shadow-lg flex flex-col gap-3 w-full">
+              <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest leading-none">{t('clusterMap.layers', 'Layers')}</span>
+
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-[13px] text-gray-200 group-hover:text-white transition-colors">{t('clusterMap.showClusters', 'Clusters')}</span>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={showClusters}
+                    onChange={() => handleToggleLayer('clusters')}
+                  />
+                  <div className="w-8 h-[18px] bg-gray-600 outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-[14px] after:w-[14px] after:transition-all peer-checked:bg-indigo-500 shadow-inner"></div>
+                </div>
+              </label>
+
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-[13px] text-gray-200 group-hover:text-white transition-colors">{t('clusterMap.showHeatmap', 'Heatmap')}</span>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={showHeatmap}
+                    onChange={() => handleToggleLayer('heatmap')}
+                  />
+                  <div className="w-8 h-[18px] bg-gray-600 outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-[14px] after:w-[14px] after:transition-all peer-checked:bg-rose-500 shadow-inner"></div>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Reset zoom button */}
@@ -553,9 +680,10 @@ export function FlightClusterMap({
             clusterMaxZoom={14}
             clusterRadius={50}
           >
-            <Layer {...clusterLayer} />
-            <Layer {...clusterCountLayer} />
-            <Layer {...unclusteredPointLayer} />
+            {showHeatmap && <Layer {...heatmapLayer} />}
+            {showClusters && <Layer {...clusterLayer} />}
+            {showClusters && <Layer {...clusterCountLayer} />}
+            {showClusters && <Layer {...unclusteredPointLayer} />}
           </Source>
 
           {/* Highlighted flight marker (shown above other markers) */}
@@ -661,8 +789,8 @@ export function FlightClusterMap({
                   {onSelectFlight && (
                     <div className="popup-footer px-3.5 pb-2.5">
                       <div className={`flex items-center justify-center gap-1 text-[11px] font-medium rounded-md py-1.5 transition-colors ${isLight
-                          ? 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
-                          : 'text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25'
+                        ? 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
+                        : 'text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25'
                         }`}>
                         <span>{t('clusterMap.viewDetails')}</span>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>

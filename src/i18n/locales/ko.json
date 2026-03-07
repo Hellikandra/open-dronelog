@@ -607,6 +607,9 @@
     "clickToCycleSpeed": "클릭하여 속도 변경"
   },
   "clusterMap": {
+    "layers": "레이어",
+    "showClusters": "클러스터",
+    "showHeatmap": "히트맵",
     "flightLocations": "비행 위치",
     "globalFilterActive": "— 전역 필터 활성",
     "satellite": "위성",

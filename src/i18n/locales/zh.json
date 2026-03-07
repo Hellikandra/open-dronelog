@@ -607,6 +607,9 @@
     "clickToCycleSpeed": "点击切换速度"
   },
   "clusterMap": {
+    "layers": "图层",
+    "showClusters": "聚类",
+    "showHeatmap": "热力图",
     "flightLocations": "飞行位置",
     "globalFilterActive": "— 全局筛选器已启用",
     "satellite": "卫星",

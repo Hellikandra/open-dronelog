@@ -607,6 +607,9 @@
     "clickToCycleSpeed": "Klicken zum Geschwindigkeit wechseln"
   },
   "clusterMap": {
+    "layers": "Ebenen",
+    "showClusters": "Cluster",
+    "showHeatmap": "Heatmap",
     "flightLocations": "Flugorte",
     "globalFilterActive": "— Globaler Filter aktiv",
     "satellite": "Satellit",
