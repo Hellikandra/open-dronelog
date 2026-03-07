@@ -537,6 +537,7 @@ async fn create_manual_flight(
         point_count: 0,
         photo_count: 0,
         video_count: 0,
+        cycle_count: None,
     };
 
     // Insert flight
@@ -1086,6 +1087,7 @@ async fn regenerate_flight_smart_tags(
         point_count: flight.point_count.unwrap_or(0),
         photo_count: flight.photo_count.unwrap_or(0),
         video_count: flight.video_count.unwrap_or(0),
+        cycle_count: flight.cycle_count,
     };
 
     match pdb.db.get_flight_telemetry(flight_id, Some(50000), None) {
@@ -1155,6 +1157,7 @@ async fn regenerate_smart_tags(
                     point_count: flight.point_count.unwrap_or(0),
                     photo_count: flight.photo_count.unwrap_or(0),
                     video_count: flight.video_count.unwrap_or(0),
+                    cycle_count: flight.cycle_count,
                 };
 
                 match pdb.db.get_flight_telemetry(*flight_id, Some(50000), None) {
