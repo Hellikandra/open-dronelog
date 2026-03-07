@@ -103,7 +103,17 @@ export function Overview({ stats, flights, unitSystem, onSelectFlight }: Overvie
         totalDurationSecs: data.duration,
         maxCycleCount: data.maxCycleCount,
       }))
-      .sort((a, b) => b.flightCount - a.flightCount);
+      .sort((a, b) => {
+        // Sort by health percentage (lowest first = needs attention first)
+        const maxCycles = 400;
+        const healthA = a.maxCycleCount != null
+          ? Math.max(0, 100 - (a.maxCycleCount / maxCycles) * 100)
+          : Math.max(0, 100 - (a.flightCount / maxCycles) * 100);
+        const healthB = b.maxCycleCount != null
+          ? Math.max(0, 100 - (b.maxCycleCount / maxCycles) * 100)
+          : Math.max(0, 100 - (b.flightCount / maxCycles) * 100);
+        return healthA - healthB;
+      });
 
     // Drone usage with disambiguation for same model names (normalize serials)
     const droneMap = new Map<string, { model: string; serial: string | null; name: string | null; count: number; totalDurationSecs: number }>();
