@@ -467,14 +467,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     value={dateLocale}
                     onChange={(v) => setDateLocale(v)}
                     options={[
-                      { value: 'en-GB', label: 'DD/MM/YYYY' },
-                      { value: 'en-US', label: 'MM/DD/YYYY' },
-                      { value: 'de-DE', label: 'DD.MM.YYYY' },
-                      { value: 'nl-NL', label: 'DD-MM-YYYY' },
-                      { value: 'sv-SE', label: 'YYYY-MM-DD' },
-                      { value: 'ja-JP', label: 'YYYY/MM/DD' },
-                      { value: 'zh-CN', label: 'YYYY/M/D' },
-                      { value: 'ko-KR', label: 'YYYY. M. D.' },
+                      { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
+                      { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
+                      { value: 'DD.MM.YYYY', label: 'DD.MM.YYYY' },
+                      { value: 'DD-MM-YYYY', label: 'DD-MM-YYYY' },
+                      { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD' },
+                      { value: 'YYYY/MM/DD', label: 'YYYY/MM/DD' },
+                      { value: 'YYYY/M/D', label: 'YYYY/M/D' },
+                      { value: 'YYYY. M. D.', label: 'YYYY. M. D.' },
                     ]}
                   />
                 </div>

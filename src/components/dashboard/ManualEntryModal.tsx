@@ -9,6 +9,7 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { createManualFlight } from '@/lib/api';
 import { useFlightStore } from '@/stores/flightStore';
+import { formatDateDisplay as fmtDateDisplay } from '@/lib/utils';
 
 function resolveThemeMode(mode: 'system' | 'dark' | 'light'): 'dark' | 'light' {
   if (mode === 'system') {
@@ -77,7 +78,7 @@ export function ManualEntryModal({ isOpen, onClose }: ManualEntryModalProps) {
   const datePickerRef = useRef<HTMLDivElement>(null);
 
   const { t } = useTranslation();
-  const { unitSystem, dateLocale, loadFlights, loadOverview, loadAllTags, themeMode } = useFlightStore();
+  const { unitSystem, dateLocale, appLanguage, loadFlights, loadOverview, loadAllTags, themeMode } = useFlightStore();
   const isLight = resolveThemeMode(themeMode) === 'light';
 
   // Reset form when modal opens
@@ -246,11 +247,7 @@ export function ManualEntryModal({ isOpen, onClose }: ManualEntryModalProps) {
 
   const formatDateDisplay = (date: Date | undefined): string => {
     if (!date) return t('manual.selectDate');
-    return date.toLocaleDateString(dateLocale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return fmtDateDisplay(date, dateLocale, appLanguage);
   };
 
   if (!isOpen) return null;

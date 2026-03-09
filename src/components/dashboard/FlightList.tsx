@@ -15,7 +15,7 @@ import * as api from '@/lib/api';
 import { isWebMode, downloadFile, downloadBlob } from '@/lib/api';
 import { buildCsv, buildJson, buildGpx, buildKml } from '@/lib/exportUtils';
 import { useFlightStore } from '@/stores/flightStore';
-import { formatDuration, formatDateTime, formatDistance, formatAltitude, normalizeSerial } from '@/lib/utils';
+import { formatDuration, formatDateTime, formatDistance, formatAltitude, normalizeSerial, formatDateDisplay } from '@/lib/utils';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import type { FlightDataResponse, Flight, TelemetryData } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -133,6 +133,7 @@ export function FlightList({
     unitSystem,
     locale,
     dateLocale,
+    appLanguage,
     themeMode,
     timeFormat,
     getBatteryDisplayName,
@@ -272,13 +273,10 @@ export function FlightList({
   const tagBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const dateFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat(dateLocale, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    [dateLocale]
+    () => ({
+      format: (date: Date) => formatDateDisplay(date, dateLocale, appLanguage),
+    }),
+    [dateLocale, appLanguage]
   );
   const today = useMemo(() => {
     const date = new Date();
@@ -1391,6 +1389,7 @@ export function FlightList({
         unitSystem,
         locale,
         dateLocale,
+        appLanguage,
         timeFormat,
         t,
       });
@@ -3035,7 +3034,7 @@ export function FlightList({
                     }}
                     title={[
                       flight.displayName || flight.fileName,
-                      `Start: ${formatDateTime(flight.startTime, dateLocale, hour12)}`,
+                      `Start: ${formatDateTime(flight.startTime, dateLocale, appLanguage, hour12)}`,
                       `Duration: ${formatDuration(flight.durationSecs)}`,
                       `Distance: ${formatDistance(flight.totalDistance, unitSystem, locale)}`,
                       `Max Altitude: ${formatAltitude(flight.maxAltitude, unitSystem, locale)}`,
@@ -3074,7 +3073,7 @@ export function FlightList({
               {/* Subtitle: date + duration */}
               {editingId !== flight.id && (
                 <p className="text-xs text-gray-500 mt-0.5 truncate">
-                  {formatDateTime(flight.startTime, dateLocale, hour12)}
+                  {formatDateTime(flight.startTime, dateLocale, appLanguage, hour12)}
                   {flight.durationSecs ? ` · ${formatDuration(flight.durationSecs)}` : ''}
                   {flight.totalDistance ? ` · ${formatDistance(flight.totalDistance, unitSystem, locale)}` : ''}
                 </p>

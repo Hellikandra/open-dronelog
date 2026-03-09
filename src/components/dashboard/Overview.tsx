@@ -17,6 +17,8 @@ import {
   formatSpeed,
   formatAltitude,
   formatDateTime,
+  formatDateDisplay as fmtDateDisplay,
+  formatDateNumeric,
   normalizeSerial,
   type UnitSystem,
 } from '@/lib/utils';
@@ -46,6 +48,7 @@ export function Overview({ stats, flights, unitSystem, onSelectFlight }: Overvie
   const { t } = useTranslation();
   const locale = useFlightStore((state) => state.locale);
   const dateLocale = useFlightStore((state) => state.dateLocale);
+  const appLanguage = useFlightStore((state) => state.appLanguage);
   const timeFormat = useFlightStore((state) => state.timeFormat);
   const themeMode = useFlightStore((state) => state.themeMode);
   const getBatteryDisplayName = useFlightStore((state) => state.getBatteryDisplayName);
@@ -406,7 +409,7 @@ export function Overview({ stats, flights, unitSystem, onSelectFlight }: Overvie
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate">{flight.displayName}</p>
-                    <p className="text-xs text-gray-400">{formatDateTime(flight.startTime, dateLocale, timeFormat !== '24h')}</p>
+                    <p className="text-xs text-gray-400">{formatDateTime(flight.startTime, dateLocale, appLanguage, timeFormat !== '24h')}</p>
                   </div>
                   <div className="text-sm font-medium text-drone-accent">
                     {formatDuration(flight.durationSecs)}
@@ -440,7 +443,7 @@ export function Overview({ stats, flights, unitSystem, onSelectFlight }: Overvie
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white truncate">{flight.displayName}</p>
-                      <p className="text-xs text-gray-400">{formatDateTime(flight.startTime, dateLocale, timeFormat !== '24h')}</p>
+                      <p className="text-xs text-gray-400">{formatDateTime(flight.startTime, dateLocale, appLanguage, timeFormat !== '24h')}</p>
                     </div>
                     <div className="text-sm font-medium text-drone-accent">
                       {formatDistance(flight.maxDistanceFromHomeM, unitSystem, locale)}
@@ -703,6 +706,7 @@ function ActivityHeatmapCard({
 }) {
   const { t } = useTranslation();
   const dateLocale = useFlightStore((state) => state.dateLocale);
+  const appLanguage = useFlightStore((state) => state.appLanguage);
   const today = new Date();
   const oneYearAgo = new Date(today);
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -732,7 +736,7 @@ function ActivityHeatmapCard({
 
   const formatDate = (d: Date | undefined) => {
     if (!d) return '—';
-    return d.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' });
+    return fmtDateDisplay(d, dateLocale, appLanguage);
   };
 
   // Filter flights by date range
@@ -867,6 +871,7 @@ function ActivityHeatmap({
 }) {
   const { t } = useTranslation();
   const dateLocale = useFlightStore((state) => state.dateLocale);
+  const appLanguage = useFlightStore((state) => state.appLanguage);
   const maxWidth = 1170;
   const labelWidth = 28;
   const gapSize = 2;
@@ -927,7 +932,7 @@ function ActivityHeatmap({
         const month = firstValidDay.date.getMonth();
         if (month !== lastMonth) {
           months.push({
-            label: firstValidDay.date.toLocaleDateString(dateLocale, { month: 'short' }),
+            label: firstValidDay.date.toLocaleDateString(appLanguage || 'en', { month: 'short' }),
             col: weekIdx,
           });
           lastMonth = month;
@@ -1018,7 +1023,7 @@ function ActivityHeatmap({
                     }}
                     title={
                       day.count >= 0
-                        ? t('overview.heatmapTooltip', { date: day.date.toLocaleDateString(dateLocale), count: day.count })
+                        ? t('overview.heatmapTooltip', { date: formatDateNumeric(day.date, dateLocale), count: day.count })
                         : ''
                     }
                     onDoubleClick={() => {
@@ -1761,7 +1766,7 @@ function BatteryHealthList({
       formatter: (params: Array<{ seriesName: string; value: [string, number] }>) => {
         if (!params?.length) return '';
         const dateLabel = params[0].value?.[0]
-          ? new Date(params[0].value[0]).toLocaleDateString(dateLocale)
+          ? formatDateNumeric(new Date(params[0].value[0]), dateLocale)
           : t('overview.unknownDate');
         // Deduplicate entries (line + scatter share the same name)
         const seen = new Set<string>();
@@ -2076,6 +2081,7 @@ function MaintenanceSection({
 }: MaintenanceSectionProps) {
   const { t } = useTranslation();
   const dateLocale = useFlightStore((state) => state.dateLocale);
+  const appLanguage = useFlightStore((state) => state.appLanguage);
   const [selectedBatteries, setSelectedBatteries] = useState<string[]>([]);
   const [selectedAircrafts, setSelectedAircrafts] = useState<string[]>([]);
   const [isBatteryDropdownOpen, setIsBatteryDropdownOpen] = useState(false);
@@ -2123,7 +2129,7 @@ function MaintenanceSection({
 
   // Format date for display
   const formatDateDisplay = (date: Date): string => {
-    return date.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' });
+    return fmtDateDisplay(date, dateLocale, appLanguage);
   };
 
   // Handle battery maintenance performed
@@ -2266,7 +2272,7 @@ function MaintenanceSection({
 
   const formatLastReset = (date: Date | null) => {
     if (!date) return t('overview.never');
-    return date.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' });
+    return fmtDateDisplay(date, dateLocale, appLanguage);
   };
 
   // Get all batteries for progress display, sorted by combined progress (flights % + airtime %)

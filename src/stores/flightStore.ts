@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import * as api from '@/lib/api';
 import type { Flight, FlightDataResponse, FlightMessage, ImportResult, OverviewStats } from '@/types';
-import { normalizeSerial } from '@/lib/utils';
+import { normalizeSerial, LEGACY_DATE_LOCALE_MAP } from '@/lib/utils';
 import i18n from '@/i18n';
 
 /**
@@ -219,10 +219,13 @@ export const useFlightStore = create<FlightState>((set, get) => ({
     (typeof localStorage !== 'undefined' &&
       localStorage.getItem('locale')) ||
     'en-GB',
-  dateLocale:
-    (typeof localStorage !== 'undefined' &&
-      localStorage.getItem('dateLocale')) ||
-    'en-GB',
+  dateLocale: (() => {
+    if (typeof localStorage === 'undefined') return 'DD/MM/YYYY';
+    const stored = localStorage.getItem('dateLocale') || 'en-GB';
+    const migrated = LEGACY_DATE_LOCALE_MAP[stored] || stored;
+    if (migrated !== stored) localStorage.setItem('dateLocale', migrated);
+    return migrated;
+  })(),
   appLanguage:
     (typeof localStorage !== 'undefined' &&
       localStorage.getItem('appLanguage')) ||

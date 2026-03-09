@@ -8,7 +8,7 @@
 
 import type { Flight, FlightDataResponse, TelemetryData } from '@/types';
 import type { WeatherData } from '@/lib/weather';
-import { type UnitSystem, ensureAmPmUpperCase } from '@/lib/utils';
+import { type UnitSystem, ensureAmPmUpperCase, formatDateDisplay, formatDateHeader as utilFormatDateHeader } from '@/lib/utils';
 
 // ============================================================================
 // Types
@@ -240,31 +240,32 @@ function fmtAltitude(meters: number | null, unitSystem: UnitSystem, locale?: str
 }
 
 /** Format to "DD MMM YYYY, hh:mm:ss AM/PM TZ" */
-function fmtDateTimeFull(isoString: string | null, locale?: string, hour12?: boolean): string {
+function fmtDateTimeFull(isoString: string | null, dateFormat?: string, lang?: string, hour12?: boolean): string {
   if (!isoString) return '—';
   try {
     const date = new Date(isoString);
-    return ensureAmPmUpperCase(date.toLocaleString(locale, {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    const datePart = dateFormat
+      ? formatDateDisplay(date, dateFormat, lang)
+      : date.toLocaleDateString(lang, { day: '2-digit', month: 'short', year: 'numeric' });
+    const timePart = date.toLocaleTimeString(lang || 'en', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
       hour12: hour12 !== undefined ? hour12 : true,
       timeZoneName: 'short',
-    }));
+    });
+    return ensureAmPmUpperCase(`${datePart}, ${timePart}`);
   } catch {
     return isoString;
   }
 }
 
 /** Format time only: "hh:mm:ss AM/PM TZ" */
-function fmtTimeFull(isoString: string | null, locale?: string, hour12?: boolean): string {
+function fmtTimeFull(isoString: string | null, lang?: string, hour12?: boolean): string {
   if (!isoString) return '—';
   try {
     const date = new Date(isoString);
-    return ensureAmPmUpperCase(date.toLocaleString(locale, {
+    return ensureAmPmUpperCase(date.toLocaleTimeString(lang || 'en', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -276,17 +277,14 @@ function fmtTimeFull(isoString: string | null, locale?: string, hour12?: boolean
   }
 }
 
-/** Format date for day header: "DD MMM YYYY" */
-function fmtDateHeader(isoString: string | null, locale?: string): string {
+/** Format date for day header: "Monday, 10 Mar 2025" */
+function fmtDateHeader(isoString: string | null, dateFormat?: string, lang?: string): string {
   if (!isoString) return '';
   try {
     const date = new Date(isoString);
-    return date.toLocaleDateString(locale, {
-      weekday: 'long',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    return dateFormat
+      ? utilFormatDateHeader(date, dateFormat, lang)
+      : date.toLocaleDateString(lang, { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
   } catch {
     return isoString;
   }
@@ -298,23 +296,25 @@ function fmtDateShort(isoString: string | null): string {
 }
 
 /** Get current timestamp formatted */
-function fmtNow(locale?: string, hour12?: boolean): string {
-  return ensureAmPmUpperCase(new Date().toLocaleString(locale, {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
+function fmtNow(dateFormat?: string, lang?: string, hour12?: boolean): string {
+  const now = new Date();
+  const datePart = dateFormat
+    ? formatDateDisplay(now, dateFormat, lang)
+    : now.toLocaleDateString(lang, { day: '2-digit', month: 'short', year: 'numeric' });
+  const timePart = now.toLocaleTimeString(lang || 'en', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: hour12 !== undefined ? hour12 : true,
     timeZoneName: 'short',
-  }));
+  });
+  return ensureAmPmUpperCase(`${datePart}, ${timePart}`);
 }
 
-function calculateLandingTime(takeoffTime: string | null, durationSecs: number | null, locale?: string, hour12?: boolean): string {
+function calculateLandingTime(takeoffTime: string | null, durationSecs: number | null, lang?: string, hour12?: boolean): string {
   if (!takeoffTime || !durationSecs) return '—';
   const landing = new Date(new Date(takeoffTime).getTime() + durationSecs * 1000);
-  return ensureAmPmUpperCase(landing.toLocaleString(locale, {
+  return ensureAmPmUpperCase(landing.toLocaleTimeString(lang || 'en', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -397,6 +397,7 @@ export interface ReportOptions {
   unitSystem: UnitSystem;
   locale?: string;
   dateLocale?: string;
+  appLanguage?: string;
   timeFormat?: '12h' | '24h';
   t?: (key: string, options?: any) => string;
 }
@@ -418,19 +419,19 @@ function buildFlightColumns(
   unitSystem: UnitSystem,
   locale?: string,
   dateLocale?: string,
+  lang?: string,
   hour12?: boolean,
   t?: (key: string, options?: any) => string,
 ): FlightColumn[] {
   const columns: FlightColumn[] = [];
-  const dl = dateLocale || locale;
   const tr = (key: string, fallback: string) => t ? t(key) : fallback;
 
   // 1. General Info Column
   const generalItems: { label: string; value: string }[] = [];
   if (fc.flightName) generalItems.push({ label: tr('report.flightName', 'Flight Name'), value: esc(fd.flight.displayName || fd.flight.fileName) });
-  if (fc.flightDateTime) generalItems.push({ label: tr('report.dateTime', 'Date/Time'), value: esc(fmtDateTimeFull(fd.flight.startTime, dl, hour12)) });
-  if (fc.takeoffTime) generalItems.push({ label: tr('report.takeoff', 'Takeoff'), value: esc(fmtTimeFull(fd.flight.startTime, dl, hour12)) });
-  if (fc.landingTime) generalItems.push({ label: tr('report.landing', 'Landing'), value: esc(calculateLandingTime(fd.flight.startTime, fd.flight.durationSecs, dl, hour12)) });
+  if (fc.flightDateTime) generalItems.push({ label: tr('report.dateTime', 'Date/Time'), value: esc(fmtDateTimeFull(fd.flight.startTime, dateLocale, lang, hour12)) });
+  if (fc.takeoffTime) generalItems.push({ label: tr('report.takeoff', 'Takeoff'), value: esc(fmtTimeFull(fd.flight.startTime, lang, hour12)) });
+  if (fc.landingTime) generalItems.push({ label: tr('report.landing', 'Landing'), value: esc(calculateLandingTime(fd.flight.startTime, fd.flight.durationSecs, lang, hour12)) });
   if (fc.duration) generalItems.push({ label: tr('report.duration', 'Duration'), value: esc(fmtDuration(fd.flight.durationSecs)) });
   if (fc.takeoffCoordinates) {
     const lat = fd.flight.homeLat ?? fd.data.telemetry.latitude?.[0];
@@ -583,10 +584,11 @@ export function buildHtmlReport(
     unitSystem,
     locale,
     dateLocale,
+    appLanguage,
     timeFormat,
     t,
   } = options;
-  const dl = dateLocale || locale;
+  const lang = appLanguage || locale;
   const hour12 = timeFormat === '24h' ? false : true;
   const tr = (key: string, fallback: string) => t ? t(key) : fallback;
 
@@ -595,7 +597,7 @@ export function buildHtmlReport(
   const dayMap = new Map<string, DayGroup>();
   for (const fd of flightsData) {
     const dateKey = fmtDateShort(fd.flight.startTime) || 'Unknown';
-    const dateLabel = fmtDateHeader(fd.flight.startTime, dl) || 'Unknown Date';
+    const dateLabel = fmtDateHeader(fd.flight.startTime, dateLocale, lang) || 'Unknown Date';
     if (!dayMap.has(dateKey)) dayMap.set(dateKey, { date: dateKey, dateLabel, flights: [] });
     dayMap.get(dateKey)!.flights.push(fd);
   }
@@ -604,7 +606,7 @@ export function buildHtmlReport(
   const totalFlights = flightsData.length;
   const totalDuration = flightsData.reduce((sum, fd) => sum + (fd.flight.durationSecs || 0), 0);
   const totalDistanceM = flightsData.reduce((sum, fd) => sum + (fd.flight.totalDistance || 0), 0);
-  const now = fmtNow(dl, hour12);
+  const now = fmtNow(dateLocale, lang, hour12);
 
   let html = `<!DOCTYPE html>
 <html lang="en">
@@ -909,7 +911,7 @@ export function buildHtmlReport(
 
     for (const fd of day.flights) {
       globalFlightIndex++;
-      const flightColumns = buildFlightColumns(fd, fc, unitSystem, locale, dl, hour12, t);
+      const flightColumns = buildFlightColumns(fd, fc, unitSystem, locale, dateLocale, lang, hour12, t);
       const headerLabel = fd.flight.displayName || fd.flight.fileName || `Flight ${globalFlightIndex}`;
 
       html += `  <div class="flight-card">
