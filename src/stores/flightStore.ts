@@ -1132,7 +1132,7 @@ export const useFlightStore = create<FlightState>((set, get) => ({
       'maintenanceThresholds', 'maintenanceLastReset',
       'lastSelectedFlightId', 'sidebarWidth', 'chartFieldSelections',
       'syncFolderPath', 'htmlReportPilotName', 'htmlReportDocTitle',
-      'enabledSmartTagTypes',
+      'enabledSmartTagTypes', 'telemetryColors',
     ];
     if (typeof localStorage !== 'undefined') {
       const snapshot: Record<string, string> = {};
