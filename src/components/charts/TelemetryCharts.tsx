@@ -12,6 +12,7 @@ import type { UnitSystem } from '@/lib/utils';
 import { ensureAmPmUpperCase } from '@/lib/utils';
 import { useFlightStore } from '@/stores/flightStore';
 import { useTranslation } from 'react-i18next';
+import ColorPickerModal from '@/components/dashboard/ColorPickerModal';
 
 /** Translation function type for passing to chart builders */
 type TFn = (key: string, options?: any) => string;
@@ -156,7 +157,8 @@ function createDynamicChart(
   splitLineColor: string,
   tooltipFormatter: TooltipFormatter,
   tooltipColors: TooltipColors,
-  t: TFn
+  t: TFn,
+  colorOverrides?: Record<string, string>
 ): EChartsOption | null {
   if (selectedFieldIds.length === 0) return null;
 
@@ -209,7 +211,7 @@ function createDynamicChart(
 
   // Combine all series
   const allSeriesData: { label: string; data: (number | null)[]; color: string; unit: string }[] = [
-    ...regularSeriesData.map(s => ({ label: t(s.field.label), data: s.data, color: s.field.color, unit: s.unit })),
+    ...regularSeriesData.map(s => ({ label: t(s.field.label), data: s.data, color: colorOverrides?.[s.field.id] || s.field.color, unit: s.unit })),
     ...cellVoltageSeries,
   ];
 
@@ -405,6 +407,9 @@ interface ChartHeaderProps {
   onFieldsChange: (fields: string[]) => void;
   unitSystem: UnitSystem;
   theme: 'dark' | 'light';
+  getFieldColor: (fieldId: string) => string;
+  onFieldColorChange: (fieldId: string, color: string) => void;
+  onFieldColorReset: (fieldId: string) => void;
 }
 
 function ChartHeader({
@@ -413,11 +418,16 @@ function ChartHeader({
   onFieldsChange,
   unitSystem,
   theme,
+  getFieldColor,
+  onFieldColorChange,
+  onFieldColorReset,
 }: ChartHeaderProps) {
   const { t } = useTranslation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [colorPickerFieldId, setColorPickerFieldId] = useState<string | null>(null);
+  const [colorPickerPos, setColorPickerPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Filter available fields by search
@@ -569,8 +579,20 @@ function ChartHeader({
                           )}
                         </span>
                         <span
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: field.color }}
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0 cursor-pointer ring-1 ring-transparent hover:ring-gray-400 transition-shadow"
+                          style={{ backgroundColor: getFieldColor(field.id) }}
+                          title={t('telemetry.changeColor', 'Click to change color, right-click to reset')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rect = (e.target as HTMLElement).getBoundingClientRect();
+                            setColorPickerPos({ x: rect.right + 8, y: rect.top });
+                            setColorPickerFieldId(field.id);
+                          }}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onFieldColorReset(field.id);
+                          }}
                         />
                         <span className="truncate flex-1">{t(field.label)}</span>
                         <span className={`flex-shrink-0 ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -585,6 +607,20 @@ function ChartHeader({
           </>
         )}
       </div>
+
+      {/* Color Picker Modal for telemetry field colors */}
+      {colorPickerFieldId && (
+        <ColorPickerModal
+          isOpen={true}
+          currentColor={getFieldColor(colorPickerFieldId)}
+          onSelect={(color) => {
+            onFieldColorChange(colorPickerFieldId, color);
+            setColorPickerFieldId(null);
+          }}
+          onClose={() => setColorPickerFieldId(null)}
+          position={colorPickerPos}
+        />
+      )}
     </div>
   );
 }
@@ -609,6 +645,14 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
   const mapSyncEnabled = useFlightStore((state) => state.mapSyncEnabled);
   const setMapSyncEnabled = useFlightStore((state) => state.setMapSyncEnabled);
   const mapReplayProgress = useFlightStore((state) => state.mapReplayProgress);
+  const telemetryColors = useFlightStore((state) => state.telemetryColors);
+  const setTelemetryColor = useFlightStore((state) => state.setTelemetryColor);
+  const resetTelemetryColor = useFlightStore((state) => state.resetTelemetryColor);
+
+  /** Get the effective color for a field (user override or default) */
+  const getFieldColor = useCallback((fieldId: string): string => {
+    return telemetryColors[fieldId] || getFieldDef(fieldId)?.color || '#888888';
+  }, [telemetryColors]);
   const resolvedTheme = useMemo(() => resolveThemeMode(themeMode), [themeMode]);
   const splitLineColor = resolvedTheme === 'light' ? '#e2e8f0' : '#2a2a4e';
   const tooltipFormatter = useMemo(
@@ -778,7 +822,8 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       // Fallback to original chart when no fields selected
@@ -791,7 +836,7 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
         t
       );
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.altitudeSpeed, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.altitudeSpeed, t, telemetryColors]
   );
 
   const batteryOption = useMemo(
@@ -805,12 +850,13 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       return createBatteryChart(data, splitLineColor, tooltipFormatter, tooltipColors, t);
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.battery, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.battery, t, telemetryColors]
   );
 
   const cellVoltageOption = useMemo(
@@ -825,13 +871,14 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       // Default: use the special cell voltage chart (shows individual cells)
       return createCellVoltageChart(data, splitLineColor, tooltipFormatter, tooltipColors, t);
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.cellVoltage, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.cellVoltage, t, telemetryColors]
   );
 
   const attitudeOption = useMemo(
@@ -845,12 +892,13 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       return createAttitudeChart(data, splitLineColor, tooltipFormatter, tooltipColors, t);
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.attitude, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.attitude, t, telemetryColors]
   );
 
   const rcSignalOption = useMemo(
@@ -864,12 +912,13 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       return createRcSignalChart(data, splitLineColor, tooltipFormatter, tooltipColors, t);
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.rcSignal, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.rcSignal, t, telemetryColors]
   );
 
   const distanceToHomeOption = useMemo(
@@ -883,12 +932,13 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       return createDistanceToHomeChart(data, unitSystem, splitLineColor, tooltipFormatter, tooltipColors, t);
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.distanceToHome, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.distanceToHome, t, telemetryColors]
   );
 
   const velocityOption = useMemo(
@@ -902,12 +952,13 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       return createVelocityChart(data, unitSystem, splitLineColor, tooltipFormatter, tooltipColors, t);
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.velocity, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.velocity, t, telemetryColors]
   );
 
   const gpsOption = useMemo(
@@ -921,12 +972,13 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       return createGpsChart(data, splitLineColor, tooltipFormatter, tooltipColors, t);
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.gps, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.gps, t, telemetryColors]
   );
 
   // Battery Capacity chart - only show if data exists
@@ -943,12 +995,13 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           splitLineColor,
           tooltipFormatter,
           tooltipColors,
-          t
+          t,
+          telemetryColors
         );
       }
       return null;
     },
-    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.batteryCapacity, t]
+    [data, splitLineColor, tooltipColors, tooltipFormatter, unitSystem, chartConfigs.batteryCapacity, t, telemetryColors]
   );
 
   return (
@@ -1004,6 +1057,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           onFieldsChange={(fields) => updateChartConfig('altitudeSpeed', { selectedFields: fields })}
           unitSystem={unitSystem}
           theme={resolvedTheme}
+          getFieldColor={getFieldColor}
+          onFieldColorChange={setTelemetryColor}
+          onFieldColorReset={resetTelemetryColor}
         />
         <div className={`h-64${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
           <ReactECharts
@@ -1024,6 +1080,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           onFieldsChange={(fields) => updateChartConfig('battery', { selectedFields: fields })}
           unitSystem={unitSystem}
           theme={resolvedTheme}
+          getFieldColor={getFieldColor}
+          onFieldColorChange={setTelemetryColor}
+          onFieldColorReset={resetTelemetryColor}
         />
         <div className={`h-60${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
           <ReactECharts
@@ -1045,6 +1104,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
             onFieldsChange={(fields) => updateChartConfig('cellVoltage', { selectedFields: fields })}
             unitSystem={unitSystem}
             theme={resolvedTheme}
+            getFieldColor={getFieldColor}
+            onFieldColorChange={setTelemetryColor}
+            onFieldColorReset={resetTelemetryColor}
           />
           <div className={`h-52${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
             <ReactECharts
@@ -1067,6 +1129,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
             onFieldsChange={(fields) => updateChartConfig('batteryCapacity', { selectedFields: fields })}
             unitSystem={unitSystem}
             theme={resolvedTheme}
+            getFieldColor={getFieldColor}
+            onFieldColorChange={setTelemetryColor}
+            onFieldColorReset={resetTelemetryColor}
           />
           <div className={`h-52${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
             <ReactECharts
@@ -1088,6 +1153,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           onFieldsChange={(fields) => updateChartConfig('attitude', { selectedFields: fields })}
           unitSystem={unitSystem}
           theme={resolvedTheme}
+          getFieldColor={getFieldColor}
+          onFieldColorChange={setTelemetryColor}
+          onFieldColorReset={resetTelemetryColor}
         />
         <div className={`h-64${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
           <ReactECharts
@@ -1108,6 +1176,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           onFieldsChange={(fields) => updateChartConfig('rcSignal', { selectedFields: fields })}
           unitSystem={unitSystem}
           theme={resolvedTheme}
+          getFieldColor={getFieldColor}
+          onFieldColorChange={setTelemetryColor}
+          onFieldColorReset={resetTelemetryColor}
         />
         <div className={`h-40${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
           <ReactECharts
@@ -1128,6 +1199,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           onFieldsChange={(fields) => updateChartConfig('distanceToHome', { selectedFields: fields })}
           unitSystem={unitSystem}
           theme={resolvedTheme}
+          getFieldColor={getFieldColor}
+          onFieldColorChange={setTelemetryColor}
+          onFieldColorReset={resetTelemetryColor}
         />
         <div className={`h-52${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
           <ReactECharts
@@ -1148,6 +1222,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           onFieldsChange={(fields) => updateChartConfig('velocity', { selectedFields: fields })}
           unitSystem={unitSystem}
           theme={resolvedTheme}
+          getFieldColor={getFieldColor}
+          onFieldColorChange={setTelemetryColor}
+          onFieldColorReset={resetTelemetryColor}
         />
         <div className={`h-52${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
           <ReactECharts
@@ -1168,6 +1245,9 @@ export function TelemetryCharts({ data, unitSystem, startTime }: TelemetryCharts
           onFieldsChange={(fields) => updateChartConfig('gps', { selectedFields: fields })}
           unitSystem={unitSystem}
           theme={resolvedTheme}
+          getFieldColor={getFieldColor}
+          onFieldColorChange={setTelemetryColor}
+          onFieldColorReset={resetTelemetryColor}
         />
         <div className={`h-[207px]${mapSyncEnabled ? ' pointer-events-none' : ''}`}>
           <ReactECharts

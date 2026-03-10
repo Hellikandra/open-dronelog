@@ -189,6 +189,12 @@ interface FlightState {
   performMaintenance: (type: 'battery' | 'aircraft', serial: string, date?: Date) => void;
   getMaintenanceLastReset: (type: 'battery' | 'aircraft', serial: string) => string | null;
 
+  // Telemetry chart color overrides (fieldId -> hex color)
+  telemetryColors: Record<string, string>;
+  setTelemetryColor: (fieldId: string, color: string) => void;
+  resetTelemetryColor: (fieldId: string) => void;
+  resetAllTelemetryColors: () => void;
+
   // Profile management
   activeProfile: string;
   profiles: string[];
@@ -276,6 +282,38 @@ export const useFlightStore = create<FlightState>((set, get) => ({
     typeof localStorage !== 'undefined'
       ? localStorage.getItem('hideSerialNumbers') === 'true'
       : false,
+
+  // Telemetry chart color overrides
+  telemetryColors: (() => {
+    if (typeof localStorage === 'undefined') return {};
+    try {
+      const stored = localStorage.getItem('telemetryColors');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  })(),
+  setTelemetryColor: (fieldId: string, color: string) => {
+    const updated = { ...get().telemetryColors, [fieldId]: color };
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('telemetryColors', JSON.stringify(updated));
+    }
+    set({ telemetryColors: updated });
+  },
+  resetTelemetryColor: (fieldId: string) => {
+    const updated = { ...get().telemetryColors };
+    delete updated[fieldId];
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('telemetryColors', JSON.stringify(updated));
+    }
+    set({ telemetryColors: updated });
+  },
+  resetAllTelemetryColors: () => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('telemetryColors');
+    }
+    set({ telemetryColors: {} });
+  },
 
   // Map-Chart sync state (session only, default off)
   mapSyncEnabled: false,
