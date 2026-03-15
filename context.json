@@ -2,7 +2,7 @@
   "project": {
     "name": "Open DroneLog",
     "description": "Local-first drone flight log viewer and analyzer with telemetry charts, 3D flight maps, and analytics. Supports DJI, Litchi CSV, and Airdata CSV formats. Available as a Tauri v2 desktop app or a Docker-deployable web app.",
-    "version": "2.28.1",
+    "version": "2.31.0",
     "license": "AGPL-3.0-only",
     "repository": "https://github.com/arpanghosh8453/open-dronelog",
     "mirror": "https://codeberg.org/arpanghosh8453/open-dronelog"
@@ -121,7 +121,8 @@
         "charts/TelemetryCharts.tsx": "Synchronized ECharts panels with configurable field selection",
         "map/FlightMap.tsx": "3D flight map with deck.gl overlay, replay system, telemetry overlay, RC joystick visualization",
         "ui/Select.tsx": "Searchable dropdown with keyboard navigation and multi-select support",
-      "ui/PasswordInput.tsx": "Reusable password input with eye toggle for visibility"
+        "ui/PasswordInput.tsx": "Reusable password input with eye toggle for visibility",
+        "ui/DatePickerPopover.tsx": "Reusable calendar popover for single and range selection with typed YYYY-MM-DD inputs and Go action"
       },
       "state": {
         "stores/flightStore.ts": "Zustand store: flights, telemetry cache, filters, tags, equipment names, theme, units, language, supporter badge, maintenance, map state. Syncs with localStorage and database API."
@@ -155,6 +156,7 @@
     },
     "config_files": {
       ".env": "DJI API key environment variable",
+      "parsers.json": "Optional external parser plugin configuration file (desktop app-data path or /data/drone-logbook/parsers.json in Docker/web)",
       "config.json": "Local config (API key, smart tags setting) — stored in app data dir",
       "profile_auth.json": "Per-profile argon2id password hashes — stored in app data dir",
       "context.json": "Machine-readable project context for LLM reference (gitignored)"
@@ -322,7 +324,8 @@
       "batch_import": "Multi-file selection with per-file progress counter (X of Y), cooldown between files, duplicate skip tracking.",
       "folder_sync": "Web/Docker mode: mount a folder via SYNC_LOGS_PATH, import unprocessed files manually or on a cron schedule (SYNC_INTERVAL).",
       "keep_uploaded_files": "Optional feature to retain copies of log files with SHA256 hash-based filename deduplication. Enabled by default on desktop.",
-      "manual_entry": "Create flight records without log files — collects aircraft, serials, coordinates, duration, optional distance/altitude/notes. Auto-tagged 'Manual Entry'.",
+      "manual_entry": "Create flight records without log files — collects aircraft, serials, coordinates, duration, optional distance/altitude/notes. Auto-tagged 'Manual Entry'. Date pickers support typed YYYY-MM-DD quick entry.",
+      "external_parser_plugins": "Load custom external parser plugins via parsers.json (desktop and web/docker supported paths).",
       "customization_persistence": "User-edited flight names, notes, colors, and manual tags are persisted in a flight_customizations overlay table keyed by file_hash (SHA256). On delete + reimport (individual or bulk), customizations are automatically restored. Write-through on every edit. One-time backfill migration captures existing data on upgrade. Manual-entry flights (no file_hash) are excluded."
     },
     "profiles": {
@@ -379,6 +382,7 @@
       "interactions": [
         "Synchronized zoom across all charts",
         "Global drag-to-zoom toggle + reset button",
+        "Profile-scoped telemetry color customization",
         "Per-chart configurable field selection (max 4 fields, searchable dropdown, persisted to localStorage)",
         "Hover tooltip with pill-style header across all charts",
         "Chart sync with map replay position"
@@ -420,7 +424,7 @@
       },
       "filters": {
         "types": [
-          "Date range (calendar picker)",
+          "Date range (calendar picker with quick YYYY-MM-DD start/end inputs + Go)",
           "Drone (multi-select)",
           "Battery (multi-select)",
           "Color",

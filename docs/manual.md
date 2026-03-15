@@ -120,6 +120,7 @@ The application is divided into three main areas:
 | DJI Flight Logs | `.txt` | Modern DJI format from DJI Fly app |
 | Litchi CSV | `.csv` | Exported from Litchi app |
 | Airdata CSV | `.csv` | Exported from airdata.com (all unit settings supported) |
+| External Parser Plugins | Depends on plugin | User-defined parsers configured via `parsers.json` |
 
 ### Import Methods
 
@@ -202,6 +203,9 @@ Click the **Manual Entry** button in the Import section of the sidebar.
 
 > [!NOTE]
 > Manual entries have no telemetry data, so the charts panel will be empty and the map will show only the home location marker.
+
+> [!TIP]
+> In the Date picker, you can also type a date directly in `YYYY-MM-DD` format and click **Go** for faster navigation.
 
 ---
 
@@ -339,6 +343,7 @@ Click the **Filters** header in the sidebar to expand or collapse the filter sec
 
 - Click the date button to open a calendar picker
 - Select a start date (From) and end date (To)
+- You can also type start and end dates directly using two `YYYY-MM-DD` input fields and click **Go**
 - Clear with the X button
 
 #### Drone Filter
@@ -368,7 +373,7 @@ Click the **Filters** header in the sidebar to expand or collapse the filter sec
 
 - Multi-select dropdown with all available tags
 - Type to search and filter tags
-- Select multiple tags (flight must have ALL selected tags)
+- Select multiple tags (flight may match ANY selected tag)
 
 #### Range Filters
 
@@ -546,6 +551,9 @@ You can customize which telemetry fields are displayed in each chart category:
 
 > [!TIP]
 > Your chart configuration is automatically saved and will persist across sessions in the same device. 
+
+> [!NOTE]
+> Telemetry chart colors are profile-specific and can be customized independently per profile.
 
 #### Synchronized Views
 

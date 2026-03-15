@@ -88,13 +88,13 @@
 ## Features
 
 - **High-Performance Analytics**: DuckDB-powered queries with automatic downsampling for large datasets. Free, open source, no subscription required.
-- **Multi-Format Support**: Import DJI logs (.txt), Litchi CSV, and Airdata CSV exports with automatic unit detection. Third-party apps (Dronelink, DroneDeploy) supported.
+- **Multi-Format Support**: Import DJI logs (.txt), Litchi CSV, and Airdata CSV exports with automatic unit detection. Third-party apps (Dronelink, DroneDeploy) supported. Optional external parser plugins can be configured via `parsers.json`.
 - **Smart Deduplication**: Prevents duplicate imports based on drone serial, battery serial, and start time.
 - **Interactive Flight Maps**: 3D terrain, map-type selection (Satellite, Topographic, OpenStreetMap), flight replay with speed control (0.5x-16x), live telemetry overlay, and RC joystick visualization.
-- **Telemetry Charts**: Height, speed, battery, cell voltages, attitude, RC signal, GPS, distance-to-home, velocity, battery full capacity, and battery remained capacity with synchronized drag-to-zoom.
+- **Telemetry Charts**: Height, speed, battery, cell voltages, attitude, RC signal, GPS, distance-to-home, velocity, battery full capacity, and battery remained capacity with synchronized drag-to-zoom, per-profile telemetry color customization, and collapsible panel controls.
 - **Local-First Storage**: All data in a local DuckDB database. No cloud upload required (except DJI key fetch during first import).
 - **Smart Tags**: Auto-tagging (Night Flight, High Speed, Low Battery, etc.) and offline reverse geocoding for location tags. Manual tags and bulk operations supported.on.
-- **Filters & Search**: Date range, drone/battery/controller/color filters, duration/altitude/distance sliders, tag filter, map area filter, and filter inversion.
+- **Filters & Search**: Date range (calendar + typed `YYYY-MM-DD` start/end quick entry), drone/battery/controller/color filters, duration/altitude/distance sliders, tag filter, map area filter, and filter inversion.
 - **Overview Dashboard**: Aggregate stats, activity heatmap, pie charts by drone/battery/duration, time-of-day radial chart, cluster map with optional heatmap layer, and top-flight highlights.
 - **Battery Health**: Per-battery health bars with cycle count tracking, serial renaming, per-minute usage history with zoom, and battery capacity history chart with multi-select battery dropdown showing full-charge capacity trends over time.
 - **Maintenance Tracking**: Configurable thresholds with color-coded progress bars and date-based maintenance recording.
@@ -212,7 +212,7 @@ Then press Enter and try opening the app again.
 1. **Import a Flight Log**: Click "Browse Files" or drag-and-drop a drone log file
 2. **Select a Flight**: Click on a flight in the sidebar
 3. **Analyze Data**: View telemetry charts and the 3D flight path on the map
-4. **Filter/Search/Sort**: Use date range, drone/device, battery serial filters, search, and sorting
+4. **Filter/Search/Sort**: Use date range (calendar or typed `YYYY-MM-DD` start/end + Go), drone/device, battery serial filters, search, and sorting
 5. **Overview Analytics**: Sidebar filters (date, drone, battery, duration) automatically apply to overview statistics
 5. **Export**: Use the Export dropdown in the stats bar (CSV/JSON/GPX/KML)
 6. **Backup & Restore**: Use Settings → Backup Database to export, or Import Backup to restore
@@ -400,6 +400,7 @@ For production deployments, a reverse proxy with TLS is essential.
 ## Configuration
 
 - **DJI API Key**: Stored locally in `config.json`. You can also provide it via `.env` or via the `settings` menu inside the application. The standalone app ships with a default key, but users should enter their own to avoid rate limits for log file decryption key fetching.
+- **External Parsers**: Optional parser plugins can be configured in `parsers.json` (app-data directory on desktop, `/data/drone-logbook/parsers.json` in Docker/web).
 - **Sync folder**: Set and use the `sync folder` (application interface for Desktop and ENV variable for docker) for seamless log file import and re-import with de-duplication. The files uploaded through drag and drop or browse are also collected by default in the `Uploaded` folder of application storage (customizable via settings options for Desktop and ENV variable for docker). You can use a common folder (essentially unifying the raw log files storage location), but that is not generally recommended to prevent any mishaps or file overwrites.  
 - **Database Location**: Stored in the platform-specific app data directory (e.g., AppData on Windows, Application Support on macOS, and local share on Linux). In Docker mode, data is stored in `/data/drone-logbook` (persisted via a Docker volume).
 - **API Guide**: Available API request paths and response structure is provided in the [API documentation](/docs/api-guide.md) page. 
